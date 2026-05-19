@@ -424,7 +424,7 @@ export default function App() {
                     <p style={{fontSize:13,color:T.ter,marginTop:2}}>Ordenado por data mais próxima</p>
                   </div>
                   {!readOnly && (
-                    <div style={{display:'flex',gap:8'}}>
+                    <div style={{display:'flex',gap:8}}>
                       <Btn small onClick={exportCSV}>⬇ CSV</Btn>
                       <Btn small primary onClick={saveAll} style={{background:saved?`linear-gradient(135deg,#059669,#047857)`:`linear-gradient(135deg,${T.teal},${T.green})`}}>{saved?'✓ Salvo!':'💾 Salvar'}</Btn>
                     </div>
