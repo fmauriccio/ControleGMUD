@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   const cleanUrl = jiraUrl.replace(/\/$/, '')
   const auth = Buffer.from(`${email}:${token}`).toString('base64')
   const fields = 'summary,status,assignee,priority,issuetype,created,updated,labels,fixVersions'
-  const apiUrl = `${cleanUrl}/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=${maxResults}&fields=${fields}`
+  const apiUrl = `${cleanUrl}/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&maxResults=${maxResults}&fields=${fields}`
 
   try {
     const response = await fetch(apiUrl, {
