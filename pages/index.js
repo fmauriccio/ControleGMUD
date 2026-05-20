@@ -264,6 +264,8 @@ export default function App(){
       const k=localStorage.getItem('gmud-cards');if(k)setCards(JSON.parse(k))
       const cl=localStorage.getItem('gmud-checklist');if(cl)setChecklist(JSON.parse(cl))
       const mt=localStorage.getItem('gmud-meetings');if(mt)setMeetings(JSON.parse(mt))
+      // jiraUrl also saved independently for reliability
+      const ju=localStorage.getItem('gmud-jiraUrl');if(ju)setCfg(p=>({...p,jiraUrl:ju}))
     }catch{}
   },[])
 
@@ -361,7 +363,7 @@ export default function App(){
     if(selMeeting?.id===id)setSelMeeting(null)
   }
 
-  const saveAll=()=>{persist(cards,gmud,cfg,checklist,meetings);setSaved(true);setTimeout(()=>setSaved(false),2000)}
+  const saveAll=()=>{persist(cards,gmud,cfg,checklist,meetings);try{localStorage.setItem('gmud-jiraUrl',cfg.jiraUrl)}catch{};setSaved(true);setTimeout(()=>setSaved(false),2000)}
 
   const shareLink=()=>{
     const enc=encShare(cards,gmud,cfg.jiraUrl,meetings,checklist)
