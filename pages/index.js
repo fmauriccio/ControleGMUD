@@ -292,7 +292,7 @@ export default function App(){
 
   const proc=useCallback((issues,gOver)=>{
     const g=gOver??gmud
-    const p=issues.filter(i=>!HIDDEN.has(i.fields?.status?.name)).map(i=>({key:i.key,title:i.fields?.summary||'',status:i.fields?.status?.name||'To Do',assignee:i.fields?.assignee?.displayName||'—'}))
+    const p=issues.filter(i=>!HIDDEN.has(i.fields?.status?.name)).map(i=>({key:i.key,title:i.fields?.summary||'',status:i.fields?.status?.name||'To Do',assignee:i.fields?.assignee?.displayName||'—',flagged:!!(i.fields?.flagged||(i.fields?.customfield_10021?.length>0))}))
     setCards(p);persist(p,undefined,undefined,undefined,undefined)
   },[gmud,persist])
 
@@ -435,7 +435,8 @@ export default function App(){
 
   // Health metrics
   const totalV=visible.length||1
-  const blockedPct=Math.round(((stCounts['Blocked']||0)/totalV)*100)
+  const blockedCount=(stCounts['Blocked']||0)+visible.filter(c=>c.flagged).length
+  const blockedPct=Math.round((blockedCount/totalV)*100)
   const withGmud=visible.filter(c=>gmud[c.key]?.date).length
   const gmudCoverage=Math.round((withGmud/totalV)*100)
   const onTimePct=gmudDone>0?Math.round(((gmudDone-0)/gmudDone)*100):100
@@ -671,7 +672,7 @@ export default function App(){
           {visible.length===0?<div style={{textAlign:'center',padding:'60px',color:T.ter}}><div style={{fontSize:40,marginBottom:12}}>💚</div><div>Carregue os cards para ver os indicadores.</div></div>:
           <>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(170px,1fr))',gap:12,marginBottom:20}}>
-              <HealthKpi icon="🔴" label="Cards bloqueados" value={`${stCounts['Blocked']||0}`} sub={`${blockedPct}% do total`} color={blockedPct>20?'#F87171':'#34D399'}/>
+              <HealthKpi icon="🔴" label="Cards bloqueados" value={`${blockedCount}`} sub={`${blockedPct}% do total`} color={blockedPct>20?'#F87171':'#34D399'}/>
               <HealthKpi icon="📅" label="Cobertura GMUD" value={`${gmudCoverage}%`} sub={`${withGmud}/${visible.length} cards`} color={gmudCoverage>60?'#34D399':gmudCoverage>30?'#FCD34D':'#F87171'}/>
               <HealthKpi icon="⚠️" label="GMUDs atrasadas" value={gmudLate} sub="sem data executada" color={gmudLate===0?'#34D399':'#F87171'}/>
               <HealthKpi icon="✅" label="Executadas" value={gmudDone} sub="neste ciclo" color="#34D399"/>
