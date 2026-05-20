@@ -128,9 +128,8 @@ function Btn({children,primary,small,danger,onClick,disabled,style={}}){
 
 function CardLink({k, jiraUrl, style={}}){
   const base={fontWeight:700,...style}
-  const url=jiraUrl||(typeof window!=='undefined'?localStorage.getItem('gmud-jiraUrl'):'')
-  if(url){
-    const clean=url.replace(/\/$/,'')
+  if(jiraUrl){
+    const clean=jiraUrl.replace(/\/$/,'')
     return<a href={`${clean}/browse/${k}`} target="_blank" rel="noreferrer" style={{textDecoration:'none',...base}}>{k}</a>
   }
   return<span style={base}>{k}</span>
@@ -267,6 +266,17 @@ export default function App(){
       const mt=localStorage.getItem('gmud-meetings');if(mt)setMeetings(JSON.parse(mt))
       // jiraUrl also saved independently for reliability
       const ju=localStorage.getItem('gmud-jiraUrl');if(ju)setCfg(p=>({...p,jiraUrl:ju}))
+    }catch{}
+    // Auto-sync if credentials already saved
+    try{
+      const saved=JSON.parse(localStorage.getItem('gmud-cfg')||'{}')
+      const ju2=localStorage.getItem('gmud-jiraUrl')
+      const url=saved.jiraUrl||ju2
+      if(url&&saved.email&&saved.token&&saved.project){
+        const jql=saved.jql||`project = ${saved.project} ORDER BY updated DESC`
+        fetch('/api/jira',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jiraUrl:url,email:saved.email,token:saved.token,jql,maxResults:200})})
+          .then(r=>r.json()).then(d=>{if(d.issues)proc(d.issues)}).catch(()=>{})
+      }
     }catch{}
   },[])
 
@@ -448,7 +458,12 @@ export default function App(){
     {id:'calendar', icon:'📅',label:'Calendário'},
     {id:'history',  icon:'📋',label:'Histórico'},
     {id:'health',   icon:'💚',label:'Saúde do Time'},
-    ...(!readOnly?[{id:'config',icon:'⚙️',label:'Configurações'},{id:'meetings',icon:'📝',label:'Reuniões'},{id:'checklist',icon:'✅',label:'Pré-GMUD'}]:[]),
+    ...(!readOnly?[
+      {id:'checklist',icon:'✅',label:'Pré-GMUD'},
+      {id:'meetings', icon:'📝',label:'Reuniões'},
+      {id:'config',   icon:'⚙️',label:'Configurações'},
+    ]:[]),
+  ]
 
   const inpSt={padding:'9px 12px',borderRadius:8,border:`1px solid ${T.border}`,background:T.card2,color:T.text,fontSize:13,outline:'none'}
   const selSt={padding:'9px 10px',borderRadius:8,border:`1px solid ${T.border}`,background:T.card2,color:T.text,fontSize:13}
@@ -496,6 +511,7 @@ export default function App(){
         :<>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}}>
             <div><h1 style={{fontSize:22,fontWeight:700}}>Dashboard</h1><p style={{fontSize:13,color:T.ter,marginTop:2}}>{visible.length} cards ativos · {gmudPend} GMUDs pendentes</p></div>
+            {!readOnly&&cfg.jiraUrl&&<Btn onClick={connect} disabled={loading}>{loading?'⏳ Sincronizando...':'🔄 Sincronizar'}</Btn>}
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:12,marginBottom:20}}>
             {[{label:'Cards ativos',value:visible.length,color:'#60A5FA'},{label:'GMUDs pendentes',value:gmudPend,color:T.teal},{label:'Executadas',value:gmudDone,color:'#34D399'},{label:'Atrasadas',value:gmudLate,color:'#F87171'}].map(m=>(
@@ -559,7 +575,7 @@ export default function App(){
         :<>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18,flexWrap:'wrap',gap:10}}>
             <div><h1 style={{fontSize:22,fontWeight:700}}>Cards / GMUDs</h1><p style={{fontSize:13,color:T.ter,marginTop:2}}>Ordenado por data mais próxima · {gmudLate>0&&<span style={{color:'#F87171'}}>{gmudLate} atrasada{gmudLate>1?'s':''}</span>}</p></div>
-            {!readOnly&&<div style={{display:'flex',gap:8}}><Btn small onClick={exportCSV}>⬇ CSV</Btn><Btn small primary onClick={saveAll} style={{background:saved?`linear-gradient(135deg,#059669,#047857)`:`linear-gradient(135deg,${T.teal},${T.green})`}}>{saved?'✓ Salvo!':'💾 Salvar'}</Btn></div>}
+            {!readOnly&&<div style={{display:'flex',gap:8}}>{cfg.jiraUrl&&<Btn small onClick={connect} disabled={loading}>{loading?'⏳':'🔄 Sincronizar'}</Btn>}<Btn small onClick={exportCSV}>⬇ CSV</Btn><Btn small primary onClick={saveAll} style={{background:saved?`linear-gradient(135deg,#059669,#047857)`:`linear-gradient(135deg,${T.teal},${T.green})`}}>{saved?'✓ Salvo!':'💾 Salvar'}</Btn></div>}
           </div>
           <Card style={{padding:'16px 20px'}}>
             <div style={{display:'flex',gap:10,marginBottom:14,flexWrap:'wrap'}}>
