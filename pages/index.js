@@ -128,8 +128,9 @@ function Btn({children,primary,small,danger,onClick,disabled,style={}}){
 
 function CardLink({k, jiraUrl, style={}}){
   const base={fontWeight:700,...style}
-  if(jiraUrl){
-    const clean=jiraUrl.replace(/\/$/,'')
+  const url=jiraUrl||(typeof window!=='undefined'?localStorage.getItem('gmud-jiraUrl'):'')
+  if(url){
+    const clean=url.replace(/\/$/,'')
     return<a href={`${clean}/browse/${k}`} target="_blank" rel="noreferrer" style={{textDecoration:'none',...base}}>{k}</a>
   }
   return<span style={base}>{k}</span>
@@ -447,10 +448,7 @@ export default function App(){
     {id:'calendar', icon:'📅',label:'Calendário'},
     {id:'history',  icon:'📋',label:'Histórico'},
     {id:'health',   icon:'💚',label:'Saúde do Time'},
-    {id:'checklist',icon:'✅',label:'Pré-GMUD'},
-    {id:'meetings', icon:'📝',label:'Reuniões'},
-    ...(!readOnly?[{id:'config',icon:'⚙️',label:'Configurações'}]:[]),
-  ]
+    ...(!readOnly?[{id:'config',icon:'⚙️',label:'Configurações'},{id:'meetings',icon:'📝',label:'Reuniões'},{id:'checklist',icon:'✅',label:'Pré-GMUD'}]:[]),
 
   const inpSt={padding:'9px 12px',borderRadius:8,border:`1px solid ${T.border}`,background:T.card2,color:T.text,fontSize:13,outline:'none'}
   const selSt={padding:'9px 10px',borderRadius:8,border:`1px solid ${T.border}`,background:T.card2,color:T.text,fontSize:13}
