@@ -298,7 +298,7 @@ export default function App(){
 
   const proc=useCallback((issues,gOver)=>{
     const g=gOver??gmud
-    const p=issues.filter(i=>!HIDDEN.has(i.fields?.status?.name)).map(i=>({key:i.key,title:i.fields?.summary||'',status:i.fields?.status?.name||'To Do',assignee:i.fields?.assignee?.displayName||'—',flagged:!!(i.fields?.flagged||(i.fields?.customfield_10021?.length>0))}))
+    const p=issues.filter(i=>!HIDDEN.has(i.fields?.status?.name)||gmud[i.key]?.executed).map(i=>({key:i.key,title:i.fields?.summary||'',status:i.fields?.status?.name||'To Do',assignee:i.fields?.assignee?.displayName||'—',flagged:!!(i.fields?.flagged||(i.fields?.customfield_10021?.length>0))}))
     setCards(p);persist(p,undefined,undefined,undefined,undefined)
   },[gmud,persist])
 
